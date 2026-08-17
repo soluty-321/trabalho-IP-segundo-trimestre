@@ -2,9 +2,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
-#define SELETOR_PAÍS 26
+#define SELETOR_PAIS 26
 #define LIMITOR_JOGADOR 26
-
 typedef struct {
     char nome[50]; //nome do jogador
     char posicao[6]; //"GOL", "ZAG", "MEI", "ATA" ou "pais"
@@ -14,7 +13,6 @@ typedef struct {
 } jogador;
 
 typedef struct {
-
     int placar_selecao;
     int placar_adversario;
     int entrosamento;
@@ -25,7 +23,6 @@ typedef struct {
     int cartoes_vermelhos;
     int faltas;
     int substituicoes_feitas;
-    
 } estado_jogo;
 
 void escolher_jogadores(int selecao, int formacao, jogador copa[4][27], char posicao[4]);
@@ -165,7 +162,7 @@ int validar_entrada_numerica(int max, int min) {
     return entrada;
 }
 
-int escolher_seleçao() {
+int escolher_selecao() {
     int escolha;
     printf("Escolha entre as 4 selecoes disponiveis:\n");
     printf("[1] Brasil\n[2] Alemanha\n[3] França\n[4] Espanha\n");
@@ -189,7 +186,7 @@ int escolher_seleçao() {
 
 void escolha_pre_jogo(int escolhap, int selecao, jogador copa[4][27]) {
     char nome_selecao[10];
-    strcpy(nome_selecao, copa[selecao][SELETOR_PAÍS].nome);
+    strcpy(nome_selecao, copa[selecao][SELETOR_PAIS].nome);
     if(escolhap == 1) {
         printf("jogadores da selecao %s e seus atributos\n", nome_selecao);
         for(int i = 0; i < LIMITOR_JOGADOR; i++) {
@@ -236,9 +233,9 @@ void escolher_formacao(int formacao[3]) {
     }
 }
 
-void montar_escalaçao(int selecao, int formacao[3], jogador copa[4][27]) {
+void montar_escalacao(int selecao, int formacao[3], jogador copa[4][27]) {
     int escolha;
-    printf("vamos montar a escalacao da seleção %s para lutar contra a Argentina\n", copa[selecao][SELETOR_PAÍS].nome);
+    printf("vamos montar a escalacao da seleção %s para lutar contra a Argentina\n", copa[selecao][SELETOR_PAIS].nome);
     escolher_jogadores(selecao, formacao[0], copa, "ZAG");
     escolher_jogadores(selecao, formacao[1], copa, "MEI");
     escolher_jogadores(selecao, formacao[2], copa, "ATA");
@@ -289,7 +286,7 @@ void escolher_jogadores(int selecao, int formacao, jogador copa[4][27], char pos
     }
 }
 
-void iniciar_tempo_45m(jogador copa[4][27], estado_jogo jogo[1], int tempo/*primeiro ou segundo*/) {
+void iniciar_tempo_45m(jogador copa[4][27], estado_jogo jogo[1], int tempo) {
     int tempo = 45;
     int minuto = 0;
     for(int i = 0; i < tempo; i++) {
@@ -305,8 +302,38 @@ void sortear_evento_aleatorio() {
 
 }
 
-void sortear_abrobrinha_narrativa(jogador copa[4][27]) {
-
+void sortear_abrobrinha_narrativa(jogador copa[4][27], int minuto, int selecao) {
+    int evento = rand() % 10;
+    int sortear_jogador = rand() % 11;
+    int posicao_jogador;
+    for(int i = 0; i < LIMITOR_JOGADOR; i++) {
+        if(copa[selecao][i].estado == 0 && sortear_jogador == 0) {
+            posicao_jogador = i;
+        } else if(copa[selecao][i].estado == 0) {
+            sortear_jogador--;
+        }
+    }
+    if(evento == 0) {
+        printf("%d - Jogo truncado no meio de campo, as selecoes se estudam\n", minuto);
+    } else if(evento == 1) {
+        printf("%d - Muitos passes no meio de campo, seleções briga pela posse de bola, jogo equilibrado!\n", minuto);
+    } else if(evento == 2) {
+        printf("%d - Arremesso lateral pra sua seleção, %s cobra\n", minuto, copa[selecao][posicao_jogador].nome);
+    } else if(evento == 3) {
+        printf("%d - Balão perigoso! mas seus jogadores retomam o controle da partida\n", minuto);
+    } else if(evento == 4) {
+        printf("%d - Jogadores trocam passos no meio de campo, jogo calmo na area\n", minuto);
+    } else if(evento == 5) {
+        printf("%d - Jogada perigosa perto de %s, um pouco mais perto e seria passivel de falta\n", minuto, copa[selecao][posicao_jogador].nome);
+    } else if(evento == 6) {
+        printf("%d - Jogo acirrado, seleções de estudam\n", minuto);
+    } else if(evento == 7) {
+        printf("%d - Jogador argentino derruba %s no chao, juiz não marca falta\n", minuto, copa[selecao][posicao_jogador].nome);
+    } else if(evento == 8) {
+        printf("%d - Muitos dribles dentro e fora da area, %s é driblado por argentino\n", minuto, copa[selecao][posicao_jogador].nome);
+    } else {
+        printf("%d - Torcida grita muito, otimo clima pra um futebol hoje!\n", minuto);
+    }
 }
 
 
@@ -326,7 +353,7 @@ int main() {
     fgets(nome_jogador, 50, stdin);
     nome_jogador[strcspn(nome_jogador, "\n")] = '\0';
     printf("Para comecar, escolha sua Seleçao\n");
-    selecao = escolher_seleçao();
+    selecao = escolher_selecao();
     do {
         printf("O que deseja fazer agora?:\n");
         printf("[0] iniciar jogo\n[1] Olhar jogadores\n[2] Conferir formaçoes\n");
@@ -334,7 +361,7 @@ int main() {
         escolha_pre_jogo(escolha, selecao, jogadores_copa26);
     } while (escolha != 0);
     escolher_formacao(formacao);
-    montar_escalaçao(selecao, formacao, jogadores_copa26);
+    montar_escalacao(selecao, formacao, jogadores_copa26);
     printf("Vamos inciar o primeiro tempo eeeeeeee! juiz apita e inicia o primeiro tempo!\n");
 
 
