@@ -13,6 +13,21 @@ typedef struct {
     int estado; //0 para em campo, 1 no banco e 2 lesionado
 } jogador;
 
+typedef struct {
+
+    int placar_selecao;
+    int placar_adversario;
+    int entrosamento;
+    int substituicoes_restantes;   
+    int ataques_feitos;
+    int defesas_feitas;
+    int cartoes_amarelos;
+    int cartoes_vermelhos;
+    int faltas;
+    int substituicoes_feitas;
+    
+} estado_jogo;
+
 void escolher_jogadores(int selecao, int formacao, jogador copa[4][27], char posicao[4]);
 
 void inicializar_dados(jogador copa[4][27]) {
@@ -274,15 +289,23 @@ void escolher_jogadores(int selecao, int formacao, jogador copa[4][27], char pos
     }
 }
 
-void iniciar_tempo_45m(jogador copa[4][27], int placar[2]) {
+void iniciar_tempo_45m(jogador copa[4][27], estado_jogo jogo[1], int tempo/*primeiro ou segundo*/) {
     int tempo = 45;
+    int minuto = 0;
     for(int i = 0; i < tempo; i++) {
-        
+        minuto = i;
     }
 }
 
 void sortear_evento_aleatorio() {
-    int evento = (rand() % (200 - 1 + 1)) + 1;
+    int evento = rand() % 200;
+    if(evento < 70) {
+
+    }
+
+}
+
+void sortear_abrobrinha_narrativa(jogador copa[4][27]) {
 
 }
 
@@ -292,11 +315,11 @@ int main() {
     srand(time(NULL));
     jogador jogadores_copa26[4][27];
     inicializar_dados(jogadores_copa26);
+    estado_jogo jogo[1] = {0, 0, 0, 5, 0, 0, 0, 0, 0, 0};
     char nome_jogador[50];
     int selecao;
     int escolha;
     int formacao[3]; // 0 zagueiro, 1 meia e 2 atacante
-    int placar[2] = {0, 0}; //placar[0] sua seleção e placar[1] oponente
     printf("=== Comandante da Selecao ===\n");
     printf("Bem vindo ao Comandante da Selecao! um jogo de futubol onde voce vira o tecnico de uma selecao de copa do mundo e precisa tomar decisoes estrategicas para ganhar o jogo\n");
     printf("Digite o nome do tecnico da seleçao(seu nome)\n");
