@@ -26,6 +26,9 @@ typedef struct {
 } estado_jogo;
 
 void escolher_jogadores(int selecao, int formacao, jogador copa[4][27], char posicao[4]);
+void sortear_evento_aleatorio(jogador copa[4][27], int minuto, int selecao, estado_jogo jogo[1]);
+void sortear_abrobrinha_narrativa(jogador copa[4][27], int minuto, int selecao);
+void proximo_minuto();
 
 void inicializar_dados(jogador copa[4][27]) {
     // brasil = 0
@@ -286,18 +289,20 @@ void escolher_jogadores(int selecao, int formacao, jogador copa[4][27], char pos
     }
 }
 
-void iniciar_tempo_45m(jogador copa[4][27], estado_jogo jogo[1], int tempo) {
-    int tempo = 45;
+void iniciar_tempo_45m(jogador copa[4][27], estado_jogo jogo[1], int tempo, int selecao) {
+    int tempo_quant = 45;
     int minuto = 0;
-    for(int i = 0; i < tempo; i++) {
+    for(int i = 0; i < tempo_quant; i++) {
         minuto = i;
+        sortear_evento_aleatorio(copa, minuto, selecao, jogo);
+        proximo_minuto();
     }
 }
 
-void sortear_evento_aleatorio() {
+void sortear_evento_aleatorio(jogador copa[4][27], int minuto, int selecao, estado_jogo jogo[1]) {
     int evento = rand() % 200;
-    if(evento < 70) {
-
+    if(evento < 200) {
+        sortear_abrobrinha_narrativa(copa, minuto, selecao);
     }
 
 }
@@ -306,9 +311,11 @@ void sortear_abrobrinha_narrativa(jogador copa[4][27], int minuto, int selecao) 
     int evento = rand() % 10;
     int sortear_jogador = rand() % 11;
     int posicao_jogador;
+    int flag = -1;
     for(int i = 0; i < LIMITOR_JOGADOR; i++) {
-        if(copa[selecao][i].estado == 0 && sortear_jogador == 0) {
+        if(copa[selecao][i].estado == 0 && sortear_jogador == 0 && flag == -1) {
             posicao_jogador = i;
+            flag = 0;
         } else if(copa[selecao][i].estado == 0) {
             sortear_jogador--;
         }
@@ -334,6 +341,11 @@ void sortear_abrobrinha_narrativa(jogador copa[4][27], int minuto, int selecao) 
     } else {
         printf("%d - Torcida grita muito, otimo clima pra um futebol hoje!\n", minuto);
     }
+}
+
+void proximo_minuto() {
+    printf("Aperte enter para proximo minuto\n");
+    while(getchar() != '\n');
 }
 
 
@@ -363,6 +375,7 @@ int main() {
     escolher_formacao(formacao);
     montar_escalacao(selecao, formacao, jogadores_copa26);
     printf("Vamos inciar o primeiro tempo eeeeeeee! juiz apita e inicia o primeiro tempo!\n");
-
+    iniciar_tempo_45m(jogadores_copa26, jogo, 1, selecao);
+    return 0;
 
 }
