@@ -27,14 +27,14 @@ typedef struct {
 } estado_jogo;
 
 void escolher_jogadores(int selecao, int formacao, jogador copa[4][27], char posicao[4]);
-void sortear_evento_aleatorio(jogador copa[4][27], int minuto, int selecao, estado_jogo jogo[1]);
+void sortear_evento_aleatorio(jogador copa[4][27], int minuto, int selecao, estado_jogo jogo[1], int formacao[3]);
 void sortear_abrobrinha_narrativa(jogador copa[4][27], int minuto, int selecao, estado_jogo jogo[1]);
 void proximo_minuto(char coisa[]);
 int sortear_jogador_aleatorio(jogador copa[4][27], estado_jogo jogo[1], int selecao);
-void simular_ataque(jogador copa[4][27], int minuto, int selecao, estado_jogo jogo[1]);
-int calcular_media_habilidade(jogador copa[4][27], int selecao, estado_jogo jogo[1], char posicao[]);
-void contra_ataque(jogador copa[4][27], int selecao, estado_jogo jogo[1], int estilo);
-void chance_gol(jogador copa[4][27], int selecao, int habilidade, estado_jogo jogo[1], int estilo);
+void simular_ataque(jogador copa[4][27], int minuto, int selecao, estado_jogo jogo[1], int formacao[3]);
+int calcular_media_habilidade(jogador copa[4][27], int selecao, estado_jogo jogo[1], char posicao[], int formacao);
+void contra_ataque(jogador copa[4][27], int selecao, estado_jogo jogo[1], int estilo, int formacao[3]);
+void chance_gol(jogador copa[4][27], int selecao, int habilidade, estado_jogo jogo[1], int estilo, int formacao[3]);
 void lesao(int selecao, jogador copa[4][27], estado_jogo jogo[1], int minuto);
 void fazer_substituicao(int selecao, jogador copa[4][27], estado_jogo jogo[1], int jogador_lesionado);
 
@@ -297,22 +297,22 @@ void escolher_jogadores(int selecao, int formacao, jogador copa[4][27], char pos
     }
 }
 
-void iniciar_tempo_45m(jogador copa[4][27], estado_jogo jogo[1], int tempo, int selecao) {
+void iniciar_tempo_45m(jogador copa[4][27], estado_jogo jogo[1], int tempo, int selecao, int formacao[3]) {
     int tempo_quant = 45;
     int minuto = 0;
     for(int i = 0; i < tempo_quant; i++) {
         minuto = i;
-        sortear_evento_aleatorio(copa, minuto, selecao, jogo);
+        sortear_evento_aleatorio(copa, minuto, selecao, jogo, formacao);
         proximo_minuto("minuto");
     }
 }
 
-void sortear_evento_aleatorio(jogador copa[4][27], int minuto, int selecao, estado_jogo jogo[1]) {
+void sortear_evento_aleatorio(jogador copa[4][27], int minuto, int selecao, estado_jogo jogo[1], int formacao[3]) {
     int evento = rand() % 200;
     if(evento < 170) {
         sortear_abrobrinha_narrativa(copa, minuto, selecao, jogo);
     } else if(evento < 190) {
-        simular_ataque(copa, minuto, selecao, jogo);
+        simular_ataque(copa, minuto, selecao, jogo, formacao);
     } else {
         lesao(selecao, copa, jogo, minuto);
     }
@@ -350,19 +350,19 @@ void proximo_minuto(char coisa[]) {
     while(getchar() != '\n');
 }
 
-void simular_ataque(jogador copa[4][27], int minuto, int selecao, estado_jogo jogo[1]) {
+void simular_ataque(jogador copa[4][27], int minuto, int selecao, estado_jogo jogo[1], int formacao[3]) {
     int escolha;
-    int habilidade_media = calcular_media_habilidade(copa, selecao, jogo, "ATA");
+    int habilidade_media = calcular_media_habilidade(copa, selecao, jogo, "ATA", formacao);
     printf("%d - Sua selecao tem chance de ataque! o que deseja fazer?\n", minuto);
     printf("[1] ataque agressivo(alta chance de gol, mas alta chance de contra ataque)\n");
     printf("[2] ataque balanceado(media chance de gol, media de contra ataque)\n");
     printf("[3] ataque recuado(baixa chance de gol e de contra ataque)\n");
     escolha = validar_entrada_numerica(3, 1);
-    chance_gol(copa, selecao, habilidade_media, jogo, escolha);
+    chance_gol(copa, selecao, habilidade_media, jogo, escolha, formacao);
 
 }
 
-int calcular_media_habilidade(jogador copa[4][27], int selecao, estado_jogo jogo[1], char posicao[]) {
+int calcular_media_habilidade(jogador copa[4][27], int selecao, estado_jogo jogo[1], char posicao[], int formacao) {
     int soma = 0;
     int quantidade = 0;
     for(int i = 0; i < LIMITOR_JOGADOR; i++) {
@@ -371,21 +371,23 @@ int calcular_media_habilidade(jogador copa[4][27], int selecao, estado_jogo jogo
             quantidade++;
         }
     }
-
-    return soma;
+    if(quantidade == 0) {
+        return 0;
+    }
+    return (soma / quantidade) + (formacao * 20);
 }
 
-void chance_gol(jogador copa[4][27], int selecao, int habilidade, estado_jogo jogo[1], int estilo) {
+void chance_gol(jogador copa[4][27], int selecao, int habilidade, estado_jogo jogo[1], int estilo, int formacao[3]) {
     int jogador_aleatorio = sortear_jogador_aleatorio(copa, jogo, selecao);
-    int chance = rand() % 100;
+    int chance = rand() % 200;
     chance = chance + (habilidade);
     int barrera;
     if(estilo == 1) {
-        barrera = 300;
+        barrera = 280;
     } else if(estilo == 2) {
-        barrera = 350;
+        barrera = 300;
     } else {
-        barrera = 400;
+        barrera = 320;
     }
     proximo_minuto("Momento");
 
@@ -394,16 +396,16 @@ void chance_gol(jogador copa[4][27], int selecao, int habilidade, estado_jogo jo
         jogo[0].placar_selecao++;
     } else {
         printf("%s chuta a bola eeeeeeeee! goleiro pega! contra ataque pra argentina!\n", copa[selecao][jogador_aleatorio].nome);
-        contra_ataque(copa, selecao, jogo, estilo);
+        contra_ataque(copa, selecao, jogo, estilo, formacao);
     }
     
 }
 
-void contra_ataque(jogador copa[4][27], int selecao, estado_jogo jogo[1], int estilo) {
+void contra_ataque(jogador copa[4][27], int selecao, estado_jogo jogo[1], int estilo, int formacao[3]) {
     int chance;
     int valor;
     int habilidade_defesa;
-    habilidade_defesa = calcular_media_habilidade(copa, selecao, jogo, "ZAG");
+    habilidade_defesa = calcular_media_habilidade(copa, selecao, jogo, "ZAG", formacao[0]);
     if(estilo == 1) {
         chance = 30;
     } else if(estilo == 2) {
@@ -511,7 +513,7 @@ int main() {
     escolher_formacao(formacao);
     montar_escalacao(selecao, formacao, jogadores_copa26);
     printf("Vamos inciar o primeiro tempo eeeeeeee! juiz apita e inicia o primeiro tempo!\n");
-    iniciar_tempo_45m(jogadores_copa26, jogo, 1, selecao);
+    iniciar_tempo_45m(jogadores_copa26, jogo, 1, selecao, formacao);
     return 0;
 
 }
