@@ -9,7 +9,8 @@ typedef struct {
     char posicao[6]; //"GOL", "ZAG", "MEI", "ATA" ou "pais"
     int habilidade;
     int energia;
-    int estado; //0 para em campo, 1 no banco e 2 lesionado
+    int estado; 
+    int cartoes;//0 para em campo, 1 no banco e 2 lesionado
 } jogador;
 
 typedef struct {
@@ -37,126 +38,127 @@ void contra_ataque(jogador copa[4][27], int selecao, estado_jogo jogo[1], int es
 void chance_gol(jogador copa[4][27], int selecao, int habilidade, estado_jogo jogo[1], int estilo, int formacao[3]);
 void lesao(int selecao, jogador copa[4][27], estado_jogo jogo[1], int minuto);
 void fazer_substituicao(int selecao, jogador copa[4][27], estado_jogo jogo[1], int jogador_lesionado);
+void tomar_cartao_amarelo(int selecao, estado_jogo jogo[1], jogador copa[4][27], int minuto);
 
 void inicializar_dados(jogador copa[4][27]) {
     // brasil = 0
-    copa[0][0] = (jogador){"Alisson Becker", "GOL", 86, 100, 1};
-    copa[0][1] = (jogador){"Weverton Pereira", "GOL", 78, 100, 1};
-    copa[0][2] = (jogador){"Ederson Santana", "GOL", 72, 100, 1};
-    copa[0][3] = (jogador){"Gabriel Magalhães", "ZAG", 85, 100, 1};
-    copa[0][4] = (jogador){"Marquinhos", "ZAG", 88, 100, 1};
-    copa[0][5] = (jogador){"Alex Sandro", "ZAG", 77, 100, 1};
-    copa[0][6] = (jogador){"Danilo Luiz", "ZAG", 83, 100, 1};
-    copa[0][7] = (jogador){"Gleison Bremer", "ZAG", 83, 100, 1};
-    copa[0][8] = (jogador){"Léo Pereira", "ZAG", 78, 100, 1};
-    copa[0][9] = (jogador){"Douglas Santos", "ZAG", 80, 100, 1};
-    copa[0][10] = (jogador){"Ibañez", "ZAG", 79, 100, 1};
-    copa[0][11] = (jogador){"Éderson", "MEI", 81, 100, 1};
-    copa[0][12] = (jogador){"Casemiro", "MEI", 85, 100, 1};
-    copa[0][13] = (jogador){"Bruno Guimarães", "MEI", 88, 100, 1};
-    copa[0][14] = (jogador){"Fabinho", "MEI", 83, 100, 1};
-    copa[0][15] = (jogador){"Danilo", "MEI", 79, 100, 1};
-    copa[0][16] = (jogador){"Lucas Paquetá", "MEI", 86, 100, 1};
-    copa[0][17] = (jogador){"Vinicius Júnior", "ATA", 90, 100, 1};
-    copa[0][18] = (jogador){"Matheus Cunha", "ATA", 84, 100, 1};
-    copa[0][19] = (jogador){"Neymar", "ATA", 90, 100, 1};
-    copa[0][20] = (jogador){"Raphinha", "ATA", 86, 100, 1};
-    copa[0][21] = (jogador){"Endrick", "ATA", 88, 100, 1};
-    copa[0][22] = (jogador){"Luiz Henrique", "ATA", 75, 100, 1};
-    copa[0][23] = (jogador){"Gabriel Martinelli", "ATA", 86, 100, 1};
-    copa[0][24] = (jogador){"Igor Thiago", "ATA", 78, 100, 1};
-    copa[0][25] = (jogador){"Rayan", "ATA", 75, 100, 1};
-    copa[0][26] = (jogador){"Brasil", "pais", -1, -1, -1};
+    copa[0][0] = (jogador){"Alisson Becker", "GOL", 86, 100, 1, 0};
+    copa[0][1] = (jogador){"Weverton Pereira", "GOL", 78, 100, 1, 0};
+    copa[0][2] = (jogador){"Ederson Santana", "GOL", 72, 100, 1, 0};
+    copa[0][3] = (jogador){"Gabriel Magalhães", "ZAG", 85, 100, 1, 0};
+    copa[0][4] = (jogador){"Marquinhos", "ZAG", 88, 100, 1, 0};
+    copa[0][5] = (jogador){"Alex Sandro", "ZAG", 77, 100, 1, 0};
+    copa[0][6] = (jogador){"Danilo Luiz", "ZAG", 83, 100, 1, 0};
+    copa[0][7] = (jogador){"Gleison Bremer", "ZAG", 83, 100, 1, 0};
+    copa[0][8] = (jogador){"Léo Pereira", "ZAG", 78, 100, 1, 0};
+    copa[0][9] = (jogador){"Douglas Santos", "ZAG", 80, 100, 1, 0};
+    copa[0][10] = (jogador){"Ibañez", "ZAG", 79, 100, 1, 0};
+    copa[0][11] = (jogador){"Éderson", "MEI", 81, 100, 1, 0};
+    copa[0][12] = (jogador){"Casemiro", "MEI", 85, 100, 1, 0};
+    copa[0][13] = (jogador){"Bruno Guimarães", "MEI", 88, 100, 1, 0};
+    copa[0][14] = (jogador){"Fabinho", "MEI", 83, 100, 1, 0};
+    copa[0][15] = (jogador){"Danilo", "MEI", 79, 100, 1, 0};
+    copa[0][16] = (jogador){"Lucas Paquetá", "MEI", 86, 100, 1, 0};
+    copa[0][17] = (jogador){"Vinicius Júnior", "ATA", 90, 100, 1, 0};
+    copa[0][18] = (jogador){"Matheus Cunha", "ATA", 84, 100, 1, 0};
+    copa[0][19] = (jogador){"Neymar", "ATA", 90, 100, 1, 0};
+    copa[0][20] = (jogador){"Raphinha", "ATA", 86, 100, 1, 0};
+    copa[0][21] = (jogador){"Endrick", "ATA", 88, 100, 1, 0};
+    copa[0][22] = (jogador){"Luiz Henrique", "ATA", 75, 100, 1, 0};
+    copa[0][23] = (jogador){"Gabriel Martinelli", "ATA", 86, 100, 1, 0};
+    copa[0][24] = (jogador){"Igor Thiago", "ATA", 78, 100, 1, 0};
+    copa[0][25] = (jogador){"Rayan", "ATA", 75, 100, 1, 0};
+    copa[0][26] = (jogador){"Brasil", "pais", -1, -1, -1, -1};
 
     //alemanha = 1
 
-    copa[1][0] = (jogador){"Manuel Neuer", "GOL", 86, 100, 1};
-    copa[1][1] = (jogador){"Oliver Baumann", "GOL", 79, 100, 1};
-    copa[1][2] = (jogador){"Alexander Nübel", "GOL", 79, 100, 1};
-    copa[1][3] = (jogador){"Antonio Rüdiger", "ZAG", 87, 100, 1};
-    copa[1][4] = (jogador){"Joshua Kimmich", "ZAG", 88, 100, 1};
-    copa[1][5] = (jogador){"Jonathan Tah", "ZAG", 84, 100, 1};
-    copa[1][6] = (jogador){"Nico Schlotterbeck", "ZAG", 83, 100, 1};
-    copa[1][7] = (jogador){"Waldemar Anton", "ZAG", 80, 100, 1};
-    copa[1][8] = (jogador){"David Raum", "ZAG", 81, 100, 1};
-    copa[1][9] = (jogador){"Malick Thiaw", "ZAG", 80, 100, 1};
-    copa[1][10] = (jogador){"Nathaniel Brown", "ZAG", 74, 100, 1};
-    copa[1][11] = (jogador){"Jamal Musiala", "MEI", 90, 100, 1};
-    copa[1][12] = (jogador){"Florian Wirtz", "MEI", 90, 100, 1};
-    copa[1][13] = (jogador){"Leon Goretzka", "MEI", 83, 100, 1};
-    copa[1][14] = (jogador){"Aleksandar Pavlović", "MEI", 82, 100, 1};
-    copa[1][15] = (jogador){"Angelo Stiller", "MEI", 81, 100, 1};
-    copa[1][16] = (jogador){"Pascal Groß", "MEI", 80, 100, 1};
-    copa[1][17] = (jogador){"Felix Nmecha", "MEI", 79, 100, 1};
-    copa[1][18] = (jogador){"Nadiem Amiri", "MEI", 78, 100, 1};
-    copa[1][19] = (jogador){"Jamie Leweling", "MEI", 76, 100, 1};
-    copa[1][20] = (jogador){"Assan Ouédraogo", "MEI", 75, 100, 1};
-    copa[1][21] = (jogador){"Leroy Sané", "MEI", 86, 100, 1};
-    copa[1][22] = (jogador){"Kai Havertz", "ATA", 87, 100, 1};
-    copa[1][23] = (jogador){"Deniz Undav", "ATA", 82, 100, 1};
-    copa[1][24] = (jogador){"Maximilian Beier", "ATA", 78, 100, 1};
-    copa[1][25] = (jogador){"Nick Woltemade", "ATA", 76, 100, 1};
-    copa[1][26] = (jogador){"Alemanha", "pais", -1, -1, -1};
+    copa[1][0] = (jogador){"Manuel Neuer", "GOL", 86, 100, 1, 0};
+    copa[1][1] = (jogador){"Oliver Baumann", "GOL", 79, 100, 1, 0};
+    copa[1][2] = (jogador){"Alexander Nübel", "GOL", 79, 100, 1, 0};
+    copa[1][3] = (jogador){"Antonio Rüdiger", "ZAG", 87, 100, 1, 0};
+    copa[1][4] = (jogador){"Joshua Kimmich", "ZAG", 88, 100, 1, 0};
+    copa[1][5] = (jogador){"Jonathan Tah", "ZAG", 84, 100, 1, 0};
+    copa[1][6] = (jogador){"Nico Schlotterbeck", "ZAG", 83, 100, 1, 0};
+    copa[1][7] = (jogador){"Waldemar Anton", "ZAG", 80, 100, 1, 0};
+    copa[1][8] = (jogador){"David Raum", "ZAG", 81, 100, 1, 0};
+    copa[1][9] = (jogador){"Malick Thiaw", "ZAG", 80, 100, 1, 0};
+    copa[1][10] = (jogador){"Nathaniel Brown", "ZAG", 74, 100, 1, 0};
+    copa[1][11] = (jogador){"Jamal Musiala", "MEI", 90, 100, 1, 0};
+    copa[1][12] = (jogador){"Florian Wirtz", "MEI", 90, 100, 1, 0};
+    copa[1][13] = (jogador){"Leon Goretzka", "MEI", 83, 100, 1, 0};
+    copa[1][14] = (jogador){"Aleksandar Pavlović", "MEI", 82, 100, 1, 0};
+    copa[1][15] = (jogador){"Angelo Stiller", "MEI", 81, 100, 1, 0};
+    copa[1][16] = (jogador){"Pascal Groß", "MEI", 80, 100, 1, 0};
+    copa[1][17] = (jogador){"Felix Nmecha", "MEI", 79, 100, 1, 0};
+    copa[1][18] = (jogador){"Nadiem Amiri", "MEI", 78, 100, 1, 0};
+    copa[1][19] = (jogador){"Jamie Leweling", "MEI", 76, 100, 1, 0};
+    copa[1][20] = (jogador){"Assan Ouédraogo", "MEI", 75, 100, 1, 0};
+    copa[1][21] = (jogador){"Leroy Sané", "MEI", 86, 100, 1, 0};
+    copa[1][22] = (jogador){"Kai Havertz", "ATA", 87, 100, 1, 0};
+    copa[1][23] = (jogador){"Deniz Undav", "ATA", 82, 100, 1, 0};
+    copa[1][24] = (jogador){"Maximilian Beier", "ATA", 78, 100, 1, 0};
+    copa[1][25] = (jogador){"Nick Woltemade", "ATA", 76, 100, 1, 0};
+    copa[1][26] = (jogador){"Alemanha", "pais", -1, -1, -1, -1};
 
     //França = 2
 
-    copa[2][0] = (jogador){"Mike Maignan", "GOL", 88, 100, 1};
-    copa[2][1] = (jogador){"Brice Samba", "GOL", 80, 100, 1};
-    copa[2][2] = (jogador){"Robin Risser", "GOL", 73, 100, 1};
-    copa[2][3] = (jogador){"William Saliba", "ZAG", 89, 100, 1};
-    copa[2][4] = (jogador){"Theo Hernández", "ZAG", 87, 100, 1};
-    copa[2][5] = (jogador){"Jules Koundé", "ZAG", 85, 100, 1};
-    copa[2][6] = (jogador){"Ibrahima Konaté", "ZAG", 84, 100, 1};
-    copa[2][7] = (jogador){"Dayot Upamecano", "ZAG", 83, 100, 1};
-    copa[2][8] = (jogador){"Lucas Hernández", "ZAG", 82, 100, 1};
-    copa[2][9] = (jogador){"Lucas Digne", "ZAG", 80, 100, 1};
-    copa[2][10] = (jogador){"Malo Gusto", "ZAG", 81, 100, 1};
-    copa[2][11] = (jogador){"Maxence Lacroix", "ZAG", 79, 100, 1};
-    copa[2][12] = (jogador){"Aurélien Tchouaméni", "MEI", 87, 100, 1};
-    copa[2][13] = (jogador){"Adrien Rabiot", "MEI", 82, 100, 1};
-    copa[2][14] = (jogador){"Warren Zaïre-Emery", "MEI", 85, 100, 1};
-    copa[2][15] = (jogador){"N'Golo Kanté", "MEI", 83, 100, 1};
-    copa[2][16] = (jogador){"Manu Koné", "MEI", 80, 100, 1};
-    copa[2][17] = (jogador){"Rayan Cherki", "MEI", 79, 100, 1};
-    copa[2][18] = (jogador){"Maghnes Akliouche", "MEI", 78, 100, 1};
-    copa[2][19] = (jogador){"Kylian Mbappé", "ATA", 92, 100, 1}; 
-    copa[2][20] = (jogador){"Ousmane Dembélé", "ATA", 86, 100, 1};
-    copa[2][21] = (jogador){"Michael Olise", "ATA", 86, 100, 1};
-    copa[2][22] = (jogador){"Bradley Barcola", "ATA", 84, 100, 1};
-    copa[2][23] = (jogador){"Marcus Thuram", "ATA", 84, 100, 1};
-    copa[2][24] = (jogador){"Jean-Philippe Mateta", "ATA", 81, 100, 1};
-    copa[2][25] = (jogador){"Désiré Doué", "ATA", 76, 100, 1};
-    copa[2][26] = (jogador){"França", "pais", -1, -1, -1};
+    copa[2][0] = (jogador){"Mike Maignan", "GOL", 88, 100, 1, 0};
+    copa[2][1] = (jogador){"Brice Samba", "GOL", 80, 100, 1, 0};
+    copa[2][2] = (jogador){"Robin Risser", "GOL", 73, 100, 1, 0};
+    copa[2][3] = (jogador){"William Saliba", "ZAG", 89, 100, 1, 0};
+    copa[2][4] = (jogador){"Theo Hernández", "ZAG", 87, 100, 1, 0};
+    copa[2][5] = (jogador){"Jules Koundé", "ZAG", 85, 100, 1, 0};
+    copa[2][6] = (jogador){"Ibrahima Konaté", "ZAG", 84, 100, 1, 0};
+    copa[2][7] = (jogador){"Dayot Upamecano", "ZAG", 83, 100, 1, 0};
+    copa[2][8] = (jogador){"Lucas Hernández", "ZAG", 82, 100, 1, 0};
+    copa[2][9] = (jogador){"Lucas Digne", "ZAG", 80, 100, 1, 0};
+    copa[2][10] = (jogador){"Malo Gusto", "ZAG", 81, 100, 1, 0};
+    copa[2][11] = (jogador){"Maxence Lacroix", "ZAG", 79, 100, 1, 0};
+    copa[2][12] = (jogador){"Aurélien Tchouaméni", "MEI", 87, 100, 1, 0};
+    copa[2][13] = (jogador){"Adrien Rabiot", "MEI", 82, 100, 1, 0};
+    copa[2][14] = (jogador){"Warren Zaïre-Emery", "MEI", 85, 100, 1, 0};
+    copa[2][15] = (jogador){"N'Golo Kanté", "MEI", 83, 100, 1, 0};
+    copa[2][16] = (jogador){"Manu Koné", "MEI", 80, 100, 1, 0};
+    copa[2][17] = (jogador){"Rayan Cherki", "MEI", 79, 100, 1, 0};
+    copa[2][18] = (jogador){"Maghnes Akliouche", "MEI", 78, 100, 1, 0};
+    copa[2][19] = (jogador){"Kylian Mbappé", "ATA", 92, 100, 1, 0}; 
+    copa[2][20] = (jogador){"Ousmane Dembélé", "ATA", 86, 100, 1, 0};
+    copa[2][21] = (jogador){"Michael Olise", "ATA", 86, 100, 1, 0};
+    copa[2][22] = (jogador){"Bradley Barcola", "ATA", 84, 100, 1, 0};
+    copa[2][23] = (jogador){"Marcus Thuram", "ATA", 84, 100, 1, 0};
+    copa[2][24] = (jogador){"Jean-Philippe Mateta", "ATA", 81, 100, 1, 0};
+    copa[2][25] = (jogador){"Désiré Doué", "ATA", 76, 100, 1, 0};
+    copa[2][26] = (jogador){"França", "pais", -1, -1, -1, -1};
 
     // Espanha = 3
 
-    copa[3][0] = (jogador){"Unai Simón", "GOL", 86, 100, 1};
-    copa[3][1] = (jogador){"David Raya", "GOL", 85, 100, 1};
-    copa[3][2] = (jogador){"Joan García", "GOL", 75, 100, 1};
-    copa[3][3] = (jogador){"Aymeric Laporte", "ZAG", 85, 100, 1};
-    copa[3][4] = (jogador){"Pau Cubarsí", "ZAG", 83, 100, 1};
-    copa[3][5] = (jogador){"Marc Cucurella", "ZAG", 84, 100, 1};
-    copa[3][6] = (jogador){"Alejandro Grimaldo", "ZAG", 83, 100, 1};
-    copa[3][7] = (jogador){"Pedro Porro", "ZAG", 81, 100, 1};
-    copa[3][8] = (jogador){"Marcos Llorente", "ZAG", 82, 100, 1};
-    copa[3][9] = (jogador){"Eric García", "ZAG", 79, 100, 1};
-    copa[3][10] = (jogador){"Marc Pubill", "ZAG", 77, 100, 1};
-    copa[3][11] = (jogador){"Rodri", "MEI", 90, 100, 1};
-    copa[3][12] = (jogador){"Pedri", "MEI", 88, 100, 1};
-    copa[3][13] = (jogador){"Gavi", "MEI", 86, 100, 1};
-    copa[3][14] = (jogador){"Fabián Ruiz", "MEI", 84, 100, 1};
-    copa[3][15] = (jogador){"Martín Zubimendi", "MEI", 84, 100, 1};
-    copa[3][16] = (jogador){"Mikel Merino", "MEI", 82, 100, 1};
-    copa[3][17] = (jogador){"Álex Baena", "MEI", 81, 100, 1};
-    copa[3][18] = (jogador){"Lamine Yamal", "ATA", 90, 100, 1};
-    copa[3][19] = (jogador){"Nico Williams", "ATA", 87, 100, 1};
-    copa[3][20] = (jogador){"Dani Olmo", "ATA", 86, 100, 1};
-    copa[3][21] = (jogador){"Mikel Oyarzabal", "ATA", 83, 100, 1};
-    copa[3][22] = (jogador){"Ferran Torres", "ATA", 82, 100, 1};
-    copa[3][23] = (jogador){"Yéremy Pino", "ATA", 80, 100, 1};
-    copa[3][24] = (jogador){"Borja Iglesias", "ATA", 79, 100, 1}; 
-    copa[3][25] = (jogador){"Víctor Muñoz", "ATA", 74, 100, 1};
-    copa[3][26] = (jogador){"Espanha", "pais", -1, -1, -1};
+    copa[3][0] = (jogador){"Unai Simón", "GOL", 86, 100, 1, 0};
+    copa[3][1] = (jogador){"David Raya", "GOL", 85, 100, 1, 0};
+    copa[3][2] = (jogador){"Joan García", "GOL", 75, 100, 1, 0};
+    copa[3][3] = (jogador){"Aymeric Laporte", "ZAG", 85, 100, 1, 0};
+    copa[3][4] = (jogador){"Pau Cubarsí", "ZAG", 83, 100, 1, 0};
+    copa[3][5] = (jogador){"Marc Cucurella", "ZAG", 84, 100, 1, 0};
+    copa[3][6] = (jogador){"Alejandro Grimaldo", "ZAG", 83, 100, 1, 0};
+    copa[3][7] = (jogador){"Pedro Porro", "ZAG", 81, 100, 1, 0};
+    copa[3][8] = (jogador){"Marcos Llorente", "ZAG", 82, 100, 1, 0};
+    copa[3][9] = (jogador){"Eric García", "ZAG", 79, 100, 1, 0};
+    copa[3][10] = (jogador){"Marc Pubill", "ZAG", 77, 100, 1, 0};
+    copa[3][11] = (jogador){"Rodri", "MEI", 90, 100, 1, 0};
+    copa[3][12] = (jogador){"Pedri", "MEI", 88, 100, 1, 0};
+    copa[3][13] = (jogador){"Gavi", "MEI", 86, 100, 1, 0};
+    copa[3][14] = (jogador){"Fabián Ruiz", "MEI", 84, 100, 1, 0};
+    copa[3][15] = (jogador){"Martín Zubimendi", "MEI", 84, 100, 1, 0};
+    copa[3][16] = (jogador){"Mikel Merino", "MEI", 82, 100, 1, 0};
+    copa[3][17] = (jogador){"Álex Baena", "MEI", 81, 100, 1, 0};
+    copa[3][18] = (jogador){"Lamine Yamal", "ATA", 90, 100, 1, 0};
+    copa[3][19] = (jogador){"Nico Williams", "ATA", 87, 100, 1, 0};
+    copa[3][20] = (jogador){"Dani Olmo", "ATA", 86, 100, 1, 0};
+    copa[3][21] = (jogador){"Mikel Oyarzabal", "ATA", 83, 100, 1, 0};
+    copa[3][22] = (jogador){"Ferran Torres", "ATA", 82, 100, 1, 0};
+    copa[3][23] = (jogador){"Yéremy Pino", "ATA", 80, 100, 1, 0};
+    copa[3][24] = (jogador){"Borja Iglesias", "ATA", 79, 100, 1, 0}; 
+    copa[3][25] = (jogador){"Víctor Muñoz", "ATA", 74, 100, 1, 0};
+    copa[3][26] = (jogador){"Espanha", "pais", -1, -1, -1, -1};
 
 }
 
@@ -308,12 +310,14 @@ void iniciar_tempo_45m(jogador copa[4][27], estado_jogo jogo[1], int tempo, int 
 
 void sortear_evento_aleatorio(jogador copa[4][27], int minuto, int selecao, estado_jogo jogo[1], int formacao[3]) {
     int evento = rand() % 200;
-    if(evento < 130) {
+    if(evento < 120) {
         sortear_abrobrinha_narrativa(copa, minuto, selecao, jogo);
-    } else if(evento < 190) {
+    } else if(evento < 130) {
         simular_ataque(copa, minuto, selecao, jogo, formacao);
-    } else {
+    } else if(evento < 140) {
         lesao(selecao, copa, jogo, minuto);
+    } else {
+        tomar_cartao_amarelo(selecao, jogo, copa, minuto);
     }
 
 }
@@ -443,7 +447,7 @@ void lesao(int selecao, jogador copa[4][27], estado_jogo jogo[1], int minuto) {
     int jogador_sorteado;
     jogador_sorteado = sortear_jogador_aleatorio(copa, jogo, selecao);
     printf("%d - %s tenta dar um carrinho em alguem... mas ele erra, dobra a perna eeeee, MEEEEEEUUUU DEEEEEEEUUUUUS, ele fratura a perna!\n", minuto, copa[selecao][jogador_sorteado].nome);
-    printf("Fratura exposta ainda! jorra sangue pra tudo que é lado! cena de carnificina aqui no gramado\n");
+    printf("a perna dele esta dobrada de forma estranha... arteria fica pra fora e JORRA MUITO sangue..., cena de chacinha no gramado no dia de hoje\n");
     copa[selecao][jogador_sorteado].estado = 2;
     if(jogo[0].substituicoes_restantes > 0) {
         fazer_substituicao(selecao, copa, jogo, jogador_sorteado);
@@ -457,6 +461,20 @@ void tomar_cartao_amarelo(int selecao, estado_jogo jogo[1], jogador copa[4][27],
     int jogador_sorteado = sortear_jogador_aleatorio(copa, jogo, selecao);
     printf("%d - %s ficou maluco! ele xinga Messi e toma cartão amarelo!\n", minuto, copa[selecao][jogador_sorteado].nome);
     jogo[0].cartoes_amarelos++;
+    copa[selecao][jogador_sorteado].cartoes++;
+    if(copa[selecao][jogador_sorteado].cartoes == 2) {
+        printf("%s toma segundo cartão amarelo e juiz saca o vermelho! jogador fica enfurecido, espanca brutalmente o arbitro mas é contido por seus colegas\n", copa[selecao][jogador_sorteado].nome);
+        printf("Ele é preso mas jogo precisa continuar, bandeirinha vira arbitro\n");
+        copa[selecao][jogador_sorteado].estado = 2;
+        jogo[0].cartoes_vermelhos++;
+        if(jogo[0].substituicoes_restantes > 0) {
+            fazer_substituicao(selecao, copa, jogo, jogador_sorteado);
+        } else {
+            printf("Voce não tem mais substituicos restantes, jogara com um a menos\n");
+            jogo[0].quantidade_em_campo--;
+        }
+        
+    }
 
 }
 
