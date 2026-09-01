@@ -466,6 +466,7 @@ void tomar_cartao_amarelo(int selecao, estado_jogo jogo[1], jogador copa[4][27],
         printf("%s toma segundo cartão amarelo e juiz saca o vermelho! jogador fica enfurecido, espanca brutalmente o arbitro mas é contido por seus colegas\n", copa[selecao][jogador_sorteado].nome);
         printf("Ele é preso mas jogo precisa continuar, bandeirinha vira arbitro\n");
         copa[selecao][jogador_sorteado].estado = 2;
+        
         jogo[0].cartoes_vermelhos++;
         if(jogo[0].substituicoes_restantes > 0) {
             fazer_substituicao(selecao, copa, jogo, jogador_sorteado);
