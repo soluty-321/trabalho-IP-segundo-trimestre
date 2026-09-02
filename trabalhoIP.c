@@ -39,6 +39,8 @@ void chance_gol(jogador copa[4][27], int selecao, int habilidade, estado_jogo jo
 void lesao(int selecao, jogador copa[4][27], estado_jogo jogo[1], int minuto);
 void fazer_substituicao(int selecao, jogador copa[4][27], estado_jogo jogo[1], int jogador_lesionado);
 void tomar_cartao_amarelo(int selecao, estado_jogo jogo[1], jogador copa[4][27], int minuto);
+void falta(int selecao, jogador copa[4][27], estado_jogo jogo[1], int minuto);
+void imprimir_placar(estado_jogo jogo[1], jogador copa[4][27], int selecao);
 
 void inicializar_dados(jogador copa[4][27]) {
     // brasil = 0
@@ -302,7 +304,10 @@ void iniciar_tempo_45m(jogador copa[4][27], estado_jogo jogo[1], int tempo, int 
     int tempo_quant = 45;
     int minuto = 0;
     for(int i = 0; i < tempo_quant; i++) {
-        minuto = i;
+        minuto = i + tempo;
+        if(minuto % 5 == 0) {
+            imprimir_placar(jogo, copa, selecao);
+        }
         sortear_evento_aleatorio(copa, minuto, selecao, jogo, formacao);
         proximo_minuto("minuto");
     }
@@ -312,12 +317,14 @@ void sortear_evento_aleatorio(jogador copa[4][27], int minuto, int selecao, esta
     int evento = rand() % 200;
     if(evento < 120) {
         sortear_abrobrinha_narrativa(copa, minuto, selecao, jogo);
-    } else if(evento < 130) {
-        simular_ataque(copa, minuto, selecao, jogo, formacao);
     } else if(evento < 140) {
+        simular_ataque(copa, minuto, selecao, jogo, formacao);
+    } else if(evento < 160) {
         lesao(selecao, copa, jogo, minuto);
-    } else {
+    } else if(evento < 180) {
         tomar_cartao_amarelo(selecao, jogo, copa, minuto);
+    } else {
+        falta(selecao, copa, jogo, minuto);
     }
 
 }
@@ -516,15 +523,32 @@ void fazer_substituicao(int selecao, jogador copa[4][27], estado_jogo jogo[1], i
 void falta(int selecao, jogador copa[4][27], estado_jogo jogo[1], int minuto) {
     int escolha;
     int jogador_sorteado = sortear_jogador_aleatorio(copa, jogo, selecao);
-    printf("%d - Messi chuta a panturrilha de %s e arbitro finalmente marca falta! mesmo com Enzo tentando espancar o bandeirinha, juiz marca falta para %s", minuto, copa[selecao][jogador_sorteado].nome, copa[selecao][SELETOR_PAIS].nome);
+    printf("%d - Messi chuta a panturrilha de %s e arbitro finalmente marca falta! mesmo com Enzo tentando espancar o bandeirinha, juiz marca falta para %s\n", minuto, copa[selecao][jogador_sorteado].nome, copa[selecao][SELETOR_PAIS].nome);
     printf("Escolha quem vai bater a falta\n");
     for(int i = 0; i < LIMITOR_JOGADOR; i++) {
         if(copa[selecao][i].estado == 0) {
-            printf("Nome: %s\n", copa[selecao][i].nome);
+            printf("%d.Nome: %s\n", i, copa[selecao][i].nome);
             printf("Posicao: %s\n", copa[selecao][i].posicao);
         }
     }
+    do {
+        escolha = validar_entrada_numerica(25, 0);
+        if(copa[selecao][escolha].estado != 0) {
+            printf("Ei, escolha jogadores validos!\n");
+        }
+    } while(copa[selecao][escolha].estado != 0);
+    printf("%s cobra a falta, jogo continua!\n", copa[selecao][escolha].nome);
 
+}
+void imprimir_placar(estado_jogo jogo[1], jogador copa[4][27], int selecao) {
+    printf("Placar:\n");
+    if(jogo[0].placar_selecao < jogo[0].placar_adversario) {
+        printf("%d x %d para a argentina", jogo[0].placar_adversario, jogo[0].placar_selecao);
+    } else if(jogo[0].placar_selecao > jogo[0].placar_adversario) {
+        printf("%d x %d para %s", jogo[0].placar_adversario, jogo[0].placar_selecao, copa[selecao][SELETOR_PAIS].nome);
+    } else {
+        printf("%d x %d, jogo equilibrado", jogo[0].placar_adversario, jogo[0].placar_selecao);
+    }
 }
 
 int main() {
@@ -552,7 +576,10 @@ int main() {
     escolher_formacao(formacao);
     montar_escalacao(selecao, formacao, jogadores_copa26);
     printf("Vamos inciar o primeiro tempo eeeeeeee! juiz apita e inicia o primeiro tempo!\n");
-    iniciar_tempo_45m(jogadores_copa26, jogo, 1, selecao, formacao);
+    iniciar_tempo_45m(jogadores_copa26, jogo, 0, selecao, formacao);
+    printf("Apita o arbrio é fim do primeiro tempo!\n");
+    printf("AUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUTORIZA o arbitro inicio do segundo tempo!");
+    iniciar_tempo_45m(jogadores_copa26, jogo, 45, selecao, formacao);
     return 0;
 
 }
