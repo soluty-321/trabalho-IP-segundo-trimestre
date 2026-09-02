@@ -511,6 +511,20 @@ void fazer_substituicao(int selecao, jogador copa[4][27], estado_jogo jogo[1], i
         jogo[0].substituicoes_restantes--;
         jogo[0].substituicoes_feitas++;
     }
+} 
+
+void falta(int selecao, jogador copa[4][27], estado_jogo jogo[1], int minuto) {
+    int escolha;
+    int jogador_sorteado = sortear_jogador_aleatorio(copa, jogo, selecao);
+    printf("%d - Messi chuta a panturrilha de %s e arbitro finalmente marca falta! mesmo com Enzo tentando espancar o bandeirinha, juiz marca falta para %s", minuto, copa[selecao][jogador_sorteado].nome, copa[selecao][SELETOR_PAIS].nome);
+    printf("Escolha quem vai bater a falta\n");
+    for(int i = 0; i < LIMITOR_JOGADOR; i++) {
+        if(copa[selecao][i].estado == 0) {
+            printf("Nome: %s\n", copa[selecao][i].nome);
+            printf("Posicao: %s\n", copa[selecao][i].posicao);
+        }
+    }
+
 }
 
 int main() {
