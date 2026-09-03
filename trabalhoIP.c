@@ -543,12 +543,13 @@ void falta(int selecao, jogador copa[4][27], estado_jogo jogo[1], int minuto) {
 void imprimir_placar(estado_jogo jogo[1], jogador copa[4][27], int selecao) {
     printf("Placar:\n");
     if(jogo[0].placar_selecao < jogo[0].placar_adversario) {
-        printf("%d x %d para a argentina", jogo[0].placar_adversario, jogo[0].placar_selecao);
+        printf("%d x %d para a argentina\n", jogo[0].placar_adversario, jogo[0].placar_selecao);
     } else if(jogo[0].placar_selecao > jogo[0].placar_adversario) {
-        printf("%d x %d para %s", jogo[0].placar_adversario, jogo[0].placar_selecao, copa[selecao][SELETOR_PAIS].nome);
+        printf("%d x %d para %s\n", jogo[0].placar_adversario, jogo[0].placar_selecao, copa[selecao][SELETOR_PAIS].nome);
     } else {
-        printf("%d x %d, jogo equilibrado", jogo[0].placar_adversario, jogo[0].placar_selecao);
+        printf("%d x %d, jogo equilibrado\n", jogo[0].placar_adversario, jogo[0].placar_selecao);
     }
+    printf("\n");
 }
 
 int main() {
@@ -580,6 +581,8 @@ int main() {
     printf("Apita o arbrio é fim do primeiro tempo!\n");
     printf("AUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUTORIZA o arbitro inicio do segundo tempo!");
     iniciar_tempo_45m(jogadores_copa26, jogo, 45, selecao, formacao);
+    printf("APIIIIIIIIIIIIIIIIIIIIIIITAAAAAA o arbitro é fim de jogo!");
+    imprimir_placar(jogo, jogadores_copa26, selecao);
     return 0;
 
 }
