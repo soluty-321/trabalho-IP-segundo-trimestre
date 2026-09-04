@@ -4,6 +4,9 @@
 #include <string.h>
 #define SELETOR_PAIS 26
 #define LIMITOR_JOGADOR 26
+
+#pragma region structs
+
 typedef struct {
     char nome[50]; //nome do jogador
     char posicao[6]; //"GOL", "ZAG", "MEI", "ATA" ou "pais"
@@ -27,6 +30,10 @@ typedef struct {
     int quantidade_em_campo;
 } estado_jogo;
 
+#pragma endregion
+
+#pragma region prototipos
+
 void escolher_jogadores(int selecao, int formacao, jogador copa[4][27], char posicao[4]);
 void sortear_evento_aleatorio(jogador copa[4][27], int minuto, int selecao, estado_jogo jogo[1], int formacao[3]);
 void sortear_abrobrinha_narrativa(jogador copa[4][27], int minuto, int selecao, estado_jogo jogo[1]);
@@ -37,10 +44,18 @@ int calcular_media_habilidade(jogador copa[4][27], int selecao, estado_jogo jogo
 void contra_ataque(jogador copa[4][27], int selecao, estado_jogo jogo[1], int estilo, int formacao[3]);
 void chance_gol(jogador copa[4][27], int selecao, int habilidade, estado_jogo jogo[1], int estilo, int formacao[3]);
 void lesao(int selecao, jogador copa[4][27], estado_jogo jogo[1], int minuto);
-void fazer_substituicao(int selecao, jogador copa[4][27], estado_jogo jogo[1], int jogador_lesionado);
+void fazer_substituicao(int selecao, jogador copa[4][27], estado_jogo jogo[1], int jogador_lesionado, int bandeira);
 void tomar_cartao_amarelo(int selecao, estado_jogo jogo[1], jogador copa[4][27], int minuto);
-void falta(int selecao, jogador copa[4][27], estado_jogo jogo[1], int minuto);
+void falta(int selecao, jogador copa[4][27], estado_jogo jogo[1], int minuto, int formacao[3]);
 void imprimir_placar(estado_jogo jogo[1], jogador copa[4][27], int selecao);
+int conferir_jogadores(jogador copa[4][27], int selecao);
+void cansar_jogadores(jogador copa[4][27], int selecao);
+void substituir_jogador_cansado(jogador copa[4][27], int selecao, estado_jogo jogo[1], int minuto);
+void tirar_habilidade(int selecao, jogador copa[4][27], int minuto);
+
+#pragma endregion
+
+#pragma region funcoes
 
 void inicializar_dados(jogador copa[4][27]) {
     // brasil = 0
@@ -247,7 +262,7 @@ void escolher_formacao(int formacao[3]) {
     }
 }
 
-void montar_escalacao(int selecao, int formacao[3], jogador copa[4][27]) {
+void montar_escalacao(char selecao, int formacao[3], jogador copa[4][27]) {
     int escolha;
     printf("vamos montar a escalacao da seleção %s para lutar contra a Argentina\n", copa[selecao][SELETOR_PAIS].nome);
     escolher_jogadores(selecao, formacao[0], copa, "ZAG");
@@ -300,17 +315,24 @@ void escolher_jogadores(int selecao, int formacao, jogador copa[4][27], char pos
     }
 }
 
-void iniciar_tempo_45m(jogador copa[4][27], estado_jogo jogo[1], int tempo, int selecao, int formacao[3]) {
+int iniciar_tempo_45m(jogador copa[4][27], estado_jogo jogo[1], int tempo, int selecao, int formacao[3]) {
     int tempo_quant = 45;
     int minuto = 0;
     for(int i = 0; i < tempo_quant; i++) {
         minuto = i + tempo;
+        if(conferir_jogadores(copa, selecao) < 7) {
+            printf("Jogadores insuficientes, derrota por jogadores insuficientes\n");
+            return -1;
+        }
         if(minuto % 5 == 0) {
             imprimir_placar(jogo, copa, selecao);
         }
         sortear_evento_aleatorio(copa, minuto, selecao, jogo, formacao);
         proximo_minuto("minuto");
+        cansar_jogadores(copa, selecao);
+        tirar_habilidade(selecao, copa, minuto);
     }
+    return 1;
 }
 
 void sortear_evento_aleatorio(jogador copa[4][27], int minuto, int selecao, estado_jogo jogo[1], int formacao[3]) {
@@ -323,8 +345,10 @@ void sortear_evento_aleatorio(jogador copa[4][27], int minuto, int selecao, esta
         lesao(selecao, copa, jogo, minuto);
     } else if(evento < 180) {
         tomar_cartao_amarelo(selecao, jogo, copa, minuto);
+    } else if(evento < 190){
+        falta(selecao, copa, jogo, minuto, formacao);
     } else {
-        falta(selecao, copa, jogo, minuto);
+        substituir_jogador_cansado(copa, selecao, jogo, minuto);
     }
 
 }
@@ -457,7 +481,7 @@ void lesao(int selecao, jogador copa[4][27], estado_jogo jogo[1], int minuto) {
     printf("a perna dele esta dobrada de forma estranha... arteria fica pra fora e JORRA MUITO sangue..., cena de chacinha no gramado no dia de hoje\n");
     copa[selecao][jogador_sorteado].estado = 2;
     if(jogo[0].substituicoes_restantes > 0) {
-        fazer_substituicao(selecao, copa, jogo, jogador_sorteado);
+        fazer_substituicao(selecao, copa, jogo, jogador_sorteado, 0);
     } else {
         printf("Substituiçoes insuficientes, voce ficara com um jogador a menos\n");
         jogo[0].quantidade_em_campo--;
@@ -476,7 +500,7 @@ void tomar_cartao_amarelo(int selecao, estado_jogo jogo[1], jogador copa[4][27],
         
         jogo[0].cartoes_vermelhos++;
         if(jogo[0].substituicoes_restantes > 0) {
-            fazer_substituicao(selecao, copa, jogo, jogador_sorteado);
+            fazer_substituicao(selecao, copa, jogo, jogador_sorteado, 0);
         } else {
             printf("Voce não tem mais substituicos restantes, jogara com um a menos\n");
             jogo[0].quantidade_em_campo--;
@@ -486,12 +510,13 @@ void tomar_cartao_amarelo(int selecao, estado_jogo jogo[1], jogador copa[4][27],
 
 }
 
-void fazer_substituicao(int selecao, jogador copa[4][27], estado_jogo jogo[1], int jogador_lesionado) {
+void fazer_substituicao(int selecao, jogador copa[4][27], estado_jogo jogo[1], int jogador_lesionado, int bandeira) {
     int primeiro, ultimo, flag = -1;
     for(int i = 0; i < LIMITOR_JOGADOR; i++) {
         if(strcmp(copa[selecao][i].posicao, copa[selecao][jogador_lesionado].posicao) == 0 && copa[selecao][i].estado == 1) {
             printf("%d. Nome: %s\n", i, copa[selecao][i].nome);
             printf("Habilidade: %d\n", copa[selecao][i].habilidade);
+            printf("Energia: %d\n", copa[selecao][i].energia);
             printf("\n");
             ultimo = i;
             if(flag == -1) {
@@ -499,6 +524,10 @@ void fazer_substituicao(int selecao, jogador copa[4][27], estado_jogo jogo[1], i
                 flag = 0;
             }
         }
+    }
+    if(flag == -1 && bandeira == 1) {
+        printf("Voce não tem mais jogadores da classe disponivel, %s volta ao jogo de bico fechado\n", copa[selecao][jogador_lesionado].nome);
+        return;
     }
     if(flag == -1) {
         printf("Voce nao tem mais jogadores da classe disponivel, voce jogara com um a menos no campo");
@@ -520,7 +549,7 @@ void fazer_substituicao(int selecao, jogador copa[4][27], estado_jogo jogo[1], i
     }
 } 
 
-void falta(int selecao, jogador copa[4][27], estado_jogo jogo[1], int minuto) {
+void falta(int selecao, jogador copa[4][27], estado_jogo jogo[1], int minuto, int formacao[3]) {
     int escolha;
     int jogador_sorteado = sortear_jogador_aleatorio(copa, jogo, selecao);
     printf("%d - Messi chuta a panturrilha de %s e arbitro finalmente marca falta! mesmo com Enzo tentando espancar o bandeirinha, juiz marca falta para %s\n", minuto, copa[selecao][jogador_sorteado].nome, copa[selecao][SELETOR_PAIS].nome);
@@ -537,20 +566,74 @@ void falta(int selecao, jogador copa[4][27], estado_jogo jogo[1], int minuto) {
             printf("Ei, escolha jogadores validos!\n");
         }
     } while(copa[selecao][escolha].estado != 0);
-    printf("%s cobra a falta, jogo continua!\n", copa[selecao][escolha].nome);
+    printf("%s cobra a falta, acho que temos chance de gol!!!!\n", copa[selecao][escolha].nome);
+    int habilidade = calcular_media_habilidade(copa, selecao, jogo, "ATA", formacao[2]);
+    chance_gol(copa, selecao, habilidade, jogo, 2, formacao);
 
 }
+
 void imprimir_placar(estado_jogo jogo[1], jogador copa[4][27], int selecao) {
     printf("Placar:\n");
     if(jogo[0].placar_selecao < jogo[0].placar_adversario) {
-        printf("%d x %d para a argentina\n", jogo[0].placar_adversario, jogo[0].placar_selecao);
+        printf("%d x %d para a Argentina\n", jogo[0].placar_adversario, jogo[0].placar_selecao);
     } else if(jogo[0].placar_selecao > jogo[0].placar_adversario) {
         printf("%d x %d para %s\n", jogo[0].placar_adversario, jogo[0].placar_selecao, copa[selecao][SELETOR_PAIS].nome);
     } else {
-        printf("%d x %d, jogo equilibrado\n", jogo[0].placar_adversario, jogo[0].placar_selecao);
+        printf("%d x %d\n", jogo[0].placar_adversario, jogo[0].placar_selecao);
     }
     printf("\n");
 }
+
+int conferir_jogadores(jogador copa[4][27], int selecao) {
+    int contagem = 0;
+    for(int i = 0; i < LIMITOR_JOGADOR; i++) {
+        if(copa[selecao][i].estado == 0) {
+            contagem++;
+        }
+    }
+    return contagem;
+}
+
+void cansar_jogadores(jogador copa[4][27], int selecao) {
+    for(int i = 0; i < LIMITOR_JOGADOR; i++) {
+        if(copa[selecao][i].estado == 0) {
+            copa[selecao][i].energia--;
+        }
+    }
+}
+
+void substituir_jogador_cansado(jogador copa[4][27], int selecao, estado_jogo jogo[1], int minuto) {
+    int jogador_sorteado = sortear_jogador_aleatorio(copa, jogo, selecao);
+    if(jogo[0].substituicoes_restantes <= 0) {
+            sortear_abrobrinha_narrativa(copa, minuto, selecao, jogo);
+            return;
+    }
+    if(copa[selecao][jogador_sorteado].energia < 50) {
+        printf("%d - %s te chama e fala que esta cansado, o que deseja fazer?\n", minuto, copa[selecao][jogador_sorteado].nome);
+        printf("1. tentar substituir\n2. Manter assim\n");
+        int escolha = validar_entrada_numerica(2, 1);
+        if(escolha == 1) {
+            fazer_substituicao(selecao, copa, jogo, jogador_sorteado, 1);
+        } else {
+            printf("Voce dá um esporro em %s e manda ele parar de ser vagabundo, afinal ele ganha milhoes pra isso\n", copa[selecao][jogador_sorteado].nome);
+            return;
+        }
+        copa[selecao][jogador_sorteado].estado = 1;
+        printf("%s te agradece por poder descansar\n", copa[selecao][jogador_sorteado].nome);
+    }
+}
+
+void tirar_habilidade(int selecao, jogador copa[4][27], int minuto) {
+    if(minuto != 0 && minuto != 45 && minuto % 3 == 0) {
+        for(int i = 0; i < LIMITOR_JOGADOR; i++) {
+            if(copa[selecao][i].estado == 0) {
+                copa[selecao][i].habilidade--;
+            }
+        }
+    }
+}
+
+#pragma endregion
 
 int main() {
     srand(time(NULL));
@@ -577,12 +660,19 @@ int main() {
     escolher_formacao(formacao);
     montar_escalacao(selecao, formacao, jogadores_copa26);
     printf("Vamos inciar o primeiro tempo eeeeeeee! juiz apita e inicia o primeiro tempo!\n");
-    iniciar_tempo_45m(jogadores_copa26, jogo, 0, selecao, formacao);
+    int flag1 = iniciar_tempo_45m(jogadores_copa26, jogo, 0, selecao, formacao);
+    if(flag1 < 0) {
+        printf("APIIIIIIIIIIIIIIIIIIIIIIITAAAAAA o arbitro é fim de jogo!\n");
+        imprimir_placar(jogo, jogadores_copa26, selecao);
+        return 0;
+    }
     printf("Apita o arbrio é fim do primeiro tempo!\n");
-    printf("AUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUTORIZA o arbitro inicio do segundo tempo!");
+    printf("AUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUTORIZA o arbitro inicio do segundo tempo!\n");
     iniciar_tempo_45m(jogadores_copa26, jogo, 45, selecao, formacao);
-    printf("APIIIIIIIIIIIIIIIIIIIIIIITAAAAAA o arbitro é fim de jogo!");
+    printf("APIIIIIIIIIIIIIIIIIIIIIIITAAAAAA o arbitro é fim de jogo!\n");
     imprimir_placar(jogo, jogadores_copa26, selecao);
     return 0;
 
 }
+
+
