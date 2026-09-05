@@ -19,7 +19,6 @@ typedef struct {
 typedef struct {
     int placar_selecao;
     int placar_adversario;
-    int entrosamento;
     int substituicoes_restantes;   
     int ataques_feitos;
     int defesas_feitas;
@@ -28,6 +27,7 @@ typedef struct {
     int faltas;
     int substituicoes_feitas;
     int quantidade_em_campo;
+    int eventos_adversos;
 } estado_jogo;
 
 #pragma endregion
@@ -52,7 +52,9 @@ int conferir_jogadores(jogador copa[4][27], int selecao);
 void cansar_jogadores(jogador copa[4][27], int selecao);
 void substituir_jogador_cansado(jogador copa[4][27], int selecao, estado_jogo jogo[1], int minuto);
 void tirar_habilidade(int selecao, jogador copa[4][27], int minuto);
-
+float calcular_acrecimos(int eventos);
+void exibir_final(estado_jogo jogo[1], jogador copa[4][27], int selecao);
+void ataque_argentina(jogador copa[4][27], int formacao[3], estado_jogo jogo[1], int selecao, int minuto);
 #pragma endregion
 
 #pragma region funcoes
@@ -331,14 +333,21 @@ int iniciar_tempo_45m(jogador copa[4][27], estado_jogo jogo[1], int tempo, int s
         proximo_minuto("minuto");
         cansar_jogadores(copa, selecao);
         tirar_habilidade(selecao, copa, minuto);
+        if(minuto == 44 || minuto == 89) {
+            int acrecimos = (int) calcular_acrecimos(jogo[0].eventos_adversos);
+            printf("Juiz da mais %d minutos de acrecimos\n", acrecimos);
+            tempo_quant = acrecimos + tempo_quant;
+        }
     }
     return 1;
 }
 
 void sortear_evento_aleatorio(jogador copa[4][27], int minuto, int selecao, estado_jogo jogo[1], int formacao[3]) {
     int evento = rand() % 200;
-    if(evento < 120) {
+    if(evento < 110) {
         sortear_abrobrinha_narrativa(copa, minuto, selecao, jogo);
+    } else if(evento < 120) {
+        ataque_argentina(copa, formacao, jogo, selecao, minuto);
     } else if(evento < 140) {
         simular_ataque(copa, minuto, selecao, jogo, formacao);
     } else if(evento < 160) {
@@ -393,6 +402,7 @@ void simular_ataque(jogador copa[4][27], int minuto, int selecao, estado_jogo jo
     printf("[3] ataque recuado(baixa chance de gol e de contra ataque)\n");
     escolha = validar_entrada_numerica(3, 1);
     chance_gol(copa, selecao, habilidade_media, jogo, escolha, formacao);
+    jogo[0].ataques_feitos++;
 
 }
 
@@ -428,6 +438,7 @@ void chance_gol(jogador copa[4][27], int selecao, int habilidade, estado_jogo jo
     if(chance >= barrera) {
         printf("e éeeeeeeee! GOOOOOOOOOOOOOOOOOOL de %s! %s chuta a bola e balança as redes nesse lindo dia!\n", copa[selecao][SELETOR_PAIS].nome, copa[selecao][jogador_aleatorio].nome);
         jogo[0].placar_selecao++;
+        copa[selecao][jogador_aleatorio].habilidade -= 5;
     } else {
         printf("%s chuta a bola eeeeeeeee! goleiro pega! contra ataque pra argentina!\n", copa[selecao][jogador_aleatorio].nome);
         contra_ataque(copa, selecao, jogo, estilo, formacao);
@@ -455,6 +466,7 @@ void contra_ataque(jogador copa[4][27], int selecao, estado_jogo jogo[1], int es
         jogo[0].placar_adversario++;
     } else {
         printf("Messi pega a bola.... sai correndo, mas é interceptado no caminho\n");
+        jogo[0].defesas_feitas++;
     }
 
 }
@@ -486,6 +498,7 @@ void lesao(int selecao, jogador copa[4][27], estado_jogo jogo[1], int minuto) {
         printf("Substituiçoes insuficientes, voce ficara com um jogador a menos\n");
         jogo[0].quantidade_em_campo--;
     }
+    jogo[0].eventos_adversos++;
 }
 
 void tomar_cartao_amarelo(int selecao, estado_jogo jogo[1], jogador copa[4][27], int minuto) {
@@ -507,10 +520,11 @@ void tomar_cartao_amarelo(int selecao, estado_jogo jogo[1], jogador copa[4][27],
         }
         
     }
+        jogo[0].eventos_adversos++;
 
 }
 
-void fazer_substituicao(int selecao, jogador copa[4][27], estado_jogo jogo[1], int jogador_lesionado, int bandeira) {
+void fazer_substituicao(int selecao, jogador copa[4][27], estado_jogo jogo[1], int jogador_lesionado, int bandeira/*1 para sub por cancaso, 0 pra lesao*/) {
     int primeiro, ultimo, flag = -1;
     for(int i = 0; i < LIMITOR_JOGADOR; i++) {
         if(strcmp(copa[selecao][i].posicao, copa[selecao][jogador_lesionado].posicao) == 0 && copa[selecao][i].estado == 1) {
@@ -528,8 +542,7 @@ void fazer_substituicao(int selecao, jogador copa[4][27], estado_jogo jogo[1], i
     if(flag == -1 && bandeira == 1) {
         printf("Voce não tem mais jogadores da classe disponivel, %s volta ao jogo de bico fechado\n", copa[selecao][jogador_lesionado].nome);
         return;
-    }
-    if(flag == -1) {
+    } else if(flag == -1) {
         printf("Voce nao tem mais jogadores da classe disponivel, voce jogara com um a menos no campo");
         jogo[0].quantidade_em_campo--;
     } else {
@@ -546,6 +559,10 @@ void fazer_substituicao(int selecao, jogador copa[4][27], estado_jogo jogo[1], i
         copa[selecao][escolha].estado = 0;
         jogo[0].substituicoes_restantes--;
         jogo[0].substituicoes_feitas++;
+        if(bandeira == 1) {
+            copa[selecao][jogador_lesionado].estado = 1;
+            printf("%s te agradece por poder descansar\n", copa[selecao][jogador_lesionado].nome);
+        }
     }
 } 
 
@@ -569,6 +586,8 @@ void falta(int selecao, jogador copa[4][27], estado_jogo jogo[1], int minuto, in
     printf("%s cobra a falta, acho que temos chance de gol!!!!\n", copa[selecao][escolha].nome);
     int habilidade = calcular_media_habilidade(copa, selecao, jogo, "ATA", formacao[2]);
     chance_gol(copa, selecao, habilidade, jogo, 2, formacao);
+    jogo[0].eventos_adversos++;
+    jogo[0].faltas++;
 
 }
 
@@ -618,8 +637,6 @@ void substituir_jogador_cansado(jogador copa[4][27], int selecao, estado_jogo jo
             printf("Voce dá um esporro em %s e manda ele parar de ser vagabundo, afinal ele ganha milhoes pra isso\n", copa[selecao][jogador_sorteado].nome);
             return;
         }
-        copa[selecao][jogador_sorteado].estado = 1;
-        printf("%s te agradece por poder descansar\n", copa[selecao][jogador_sorteado].nome);
     }
 }
 
@@ -633,13 +650,75 @@ void tirar_habilidade(int selecao, jogador copa[4][27], int minuto) {
     }
 }
 
+float calcular_acrecimos(int eventos) {
+    if(eventos == 0) {
+        return 0;
+    } else {
+        return 0.5 + calcular_acrecimos(eventos - 1);
+    }
+}
+
+void exibir_final(estado_jogo jogo[1], jogador copa[4][27], int selecao) {
+    int media_hab = 0, media_ener = 0;
+    for(int i = 0; i < LIMITOR_JOGADOR; i++) {
+        if(copa[selecao][i].estado == 1) {
+            media_hab += copa[selecao][i].habilidade;
+            media_ener += copa[selecao][i].energia;
+        }
+    }
+    media_hab = media_hab / jogo[0].quantidade_em_campo;
+    media_ener = media_ener / jogo[0].quantidade_em_campo;
+    
+    printf("=== Estatisticas finais ===\n");
+    printf("Ataques feitos: %d\n", jogo[0].ataques_feitos);
+    printf("Ataques Defesas: %d\n", jogo[0].defesas_feitas);
+    printf("Cartoes amarelos: %d\n", jogo[0].cartoes_amarelos);
+    printf("Cartoes vermelhos: %d\n", jogo[0].cartoes_vermelhos);
+    printf("Faltas sofridas: %d\n", jogo[0].faltas);
+    printf("Jogadores restantes em campo: %d\n", jogo[0].quantidade_em_campo);
+    printf("Media habilidade: %d\n", media_hab);
+    printf("MEdia energia: %d\n", media_ener);
+}
+
+void ataque_argentina(jogador copa[4][27], int formacao[3], estado_jogo jogo[1], int selecao, int minuto) {
+    printf("%d - messi perigosamente perto do gol, o que fazer?\n", minuto);
+    printf("1. Defesa por area, não cansa zagueiros mas é menos defensino\n2. marcação individual, menor chance mas gasta mais energia\n");
+    int escolha = validar_entrada_numerica(2, 1);
+    int hab_zag = calcular_media_habilidade(copa, selecao, jogo, "ZAG", formacao[0]);
+    int valor = rand() % 200;
+    switch (escolha) {
+        case 1:
+            if(valor > hab_zag + 30) {
+                printf("Messi dribla zaguiros... primeiro, segundo... terceiro eeeeeee A BOLA AFUNDA NA REDE! GOOOOLLLLLLL da argentina!\n");
+                jogo[0].placar_adversario++;
+            } else {
+                printf("Messi corre.... mas seu zagueiro rouba a bola\n");
+            }
+            break;
+        case 2:
+            if(valor > hab_zag + 50) {
+                printf("Messi dribla zaguiros... primeiro, segundo... terceiro eeeeeee A BOLA AFUNDA NA REDE! GOOOOLLLLLLL da argentina!\n");
+                jogo[0].placar_adversario++;
+                break;
+            } else {
+                printf("Messi corre.... mas seu zagueiro rouba a bola\n");
+            }
+            for(int i = 0; i < LIMITOR_JOGADOR; i++) {
+                if(strcmp(copa[selecao][i].posicao, "ZAG") == 0 && copa[selecao][i].estado == 0) {
+                    copa[selecao][i].energia -= 7;
+                }
+            }
+            break;
+    }
+}
+
 #pragma endregion
 
 int main() {
     srand(time(NULL));
     jogador jogadores_copa26[4][27];
     inicializar_dados(jogadores_copa26);
-    estado_jogo jogo[1] = {0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 11};
+    estado_jogo jogo[1] = {0, 0, 5, 0, 0, 0, 0, 0, 0, 11};
     char nome_jogador[50];
     int selecao;
     int escolha;
@@ -664,13 +743,16 @@ int main() {
     if(flag1 < 0) {
         printf("APIIIIIIIIIIIIIIIIIIIIIIITAAAAAA o arbitro é fim de jogo!\n");
         imprimir_placar(jogo, jogadores_copa26, selecao);
+        exibir_final(jogo, jogadores_copa26, selecao);
         return 0;
     }
     printf("Apita o arbrio é fim do primeiro tempo!\n");
+    jogo[0].eventos_adversos = 0;
     printf("AUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUTORIZA o arbitro inicio do segundo tempo!\n");
     iniciar_tempo_45m(jogadores_copa26, jogo, 45, selecao, formacao);
     printf("APIIIIIIIIIIIIIIIIIIIIIIITAAAAAA o arbitro é fim de jogo!\n");
     imprimir_placar(jogo, jogadores_copa26, selecao);
+    exibir_final(jogo, jogadores_copa26, selecao);
     return 0;
 
 }
